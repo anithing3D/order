@@ -989,7 +989,7 @@ function openProd(id) {
   stockEl.textContent = stock <= 5 ? `잔여 ${stock}개` : `재고 ${stock}개`;
   stockEl.className = 'modal-stock' + (stock <= 5 ? ' low' : '');
 
-  // 갤러리 이미지 구성: 썸네일 + 상세이미지1~4
+  // 갤러리 이미지 구성: 썸네일 + 상세이미지1~8
   const allImgs = [];
   if (p['이미지URL']) allImgs.push(p['이미지URL']);
   (p.detailImages || []).forEach(u => { if (u) allImgs.push(u); });

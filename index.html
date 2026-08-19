@@ -187,6 +187,32 @@
     }
     @media (min-width: 640px) { .modal-handle { display: none; } }
 
+    /* ─── 모달 갤러리 ─── */
+    .modal-gallery { width: 100%; margin-top: 10px; }
+    .modal-main-img {
+      width: 100%; aspect-ratio: 4/3;
+      background: var(--gray-100);
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+    }
+    .modal-main-img img { width: 100%; height: 100%; object-fit: cover; }
+    .modal-thumbs {
+      display: flex; gap: 8px; padding: 8px 0 0;
+      overflow-x: auto; scrollbar-width: none;
+    }
+    .modal-thumbs::-webkit-scrollbar { display: none; }
+    .modal-thumb {
+      flex-shrink: 0; width: 72px; height: 54px;
+      border-radius: 8px; overflow: hidden; cursor: pointer;
+      border: 2px solid transparent; transition: var(--tr);
+      background: var(--gray-100);
+    }
+    .modal-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .modal-thumb.active { border-color: var(--accent); }
+    .modal-thumb:hover { border-color: var(--gray-400); }
+    .modal-thumb.active:hover { border-color: var(--accent); }
+
+    /* 기존 단일 이미지 (하위 호환) */
     .modal-img {
       width: 100%; aspect-ratio: 4/3;
       background: var(--gray-100);
@@ -686,8 +712,8 @@
         <div class="sec-title">결제 수단</div>
         <div class="bank-card">
           <div class="bc-bank">카카오뱅크</div>
-          <div class="bc-num">3333-31-7244898</div>
-          <div class="bc-holder">예금주: 배준호</div>
+          <div class="bc-num">3333-03-7322884</div>
+          <div class="bc-holder">예금주: 박준호</div>
           <button class="copy-btn" onclick="copyAcct()">📋 계좌번호 복사</button>
         </div>
         <div class="field">
@@ -774,8 +800,8 @@
       <div class="payment-box">
         <div class="pb-title">입금 안내</div>
         <div class="bc-bank">카카오뱅크</div>
-        <div class="bc-num">3333-31-7244898</div>
-        <div class="bc-holder">예금주: 배준호</div>
+        <div class="bc-num">3333-03-7322884</div>
+        <div class="bc-holder">예금주: 박준호</div>
         <div style="margin-top:14px;font-size:13px;color:rgba(255,255,255,0.6);line-height:1.6">
           위 계좌로 주문 금액을 이체해주세요.<br>입금자명이 다를 경우 처리가 지연될 수 있습니다.
         </div>
@@ -814,15 +840,18 @@
 <div class="modal-overlay" id="modal-overlay" onclick="maybeCloseModal(event)">
   <div class="modal" id="modal-box">
     <div class="modal-handle"></div>
-    <div class="modal-img" id="modal-img">
-      <div class="img-placeholder">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <rect x="3" y="3" width="18" height="18" rx="2"/>
-          <circle cx="9" cy="9" r="2"/>
-          <path d="m21 15-5-5L5 21"/>
-        </svg>
-        이미지 준비 중
+    <div class="modal-gallery" id="modal-gallery">
+      <div class="modal-main-img" id="modal-main-img">
+        <div class="img-placeholder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="3" y="3" width="18" height="18" rx="2"/>
+            <circle cx="9" cy="9" r="2"/>
+            <path d="m21 15-5-5L5 21"/>
+          </svg>
+          이미지 준비 중
+        </div>
       </div>
+      <div class="modal-thumbs" id="modal-thumbs"></div>
     </div>
     <div class="modal-body">
       <div class="modal-name" id="m-name"></div>
@@ -964,15 +993,33 @@ function openProd(id) {
   stockEl.textContent = stock <= 5 ? `잔여 ${stock}개` : `재고 ${stock}개`;
   stockEl.className = 'modal-stock' + (stock <= 5 ? ' low' : '');
 
-  const imgEl = document.getElementById('modal-img');
-  imgEl.innerHTML = p['이미지URL']
-    ? `<img src="${p['이미지URL']}" alt="${p['상품명']}">`
-    : `<div class="img-placeholder">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-          <rect x="3" y="3" width="18" height="18" rx="2"/>
-          <circle cx="9" cy="9" r="2"/>
-          <path d="m21 15-5-5L5 21"/>
-        </svg>이미지 준비 중</div>`;
+  // 갤러리 이미지 구성: 썸네일 + 상세이미지1~4
+  const allImgs = [];
+  if (p['이미지URL']) allImgs.push(p['이미지URL']);
+  (p.detailImages || []).forEach(u => { if (u) allImgs.push(u); });
+
+  const mainEl = document.getElementById('modal-main-img');
+  const thumbsEl = document.getElementById('modal-thumbs');
+
+  const placeholder = `<div class="img-placeholder">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <rect x="3" y="3" width="18" height="18" rx="2"/>
+      <circle cx="9" cy="9" r="2"/>
+      <path d="m21 15-5-5L5 21"/>
+    </svg>이미지 준비 중</div>`;
+
+  if (allImgs.length === 0) {
+    mainEl.innerHTML = placeholder;
+    thumbsEl.innerHTML = '';
+  } else {
+    mainEl.innerHTML = `<img src="${allImgs[0]}" alt="${p['상품명']}">`;
+    thumbsEl.innerHTML = allImgs.length > 1
+      ? allImgs.map((u, i) =>
+          `<div class="modal-thumb${i===0?' active':''}" onclick="switchModalImg(this,'${u}')">
+            <img src="${u}" alt="이미지${i+1}">
+          </div>`).join('')
+      : '';
+  }
 
   const optsEl = document.getElementById('m-opts');
   optsEl.innerHTML = (p.options || []).map(opt => {
@@ -996,6 +1043,13 @@ function openProd(id) {
 function selChip(el, key) {
   document.querySelectorAll(`.chip[data-key="${key}"]`).forEach(c => c.classList.remove('selected'));
   el.classList.add('selected');
+}
+
+function switchModalImg(el, url) {
+  document.getElementById('modal-main-img').innerHTML =
+    `<img src="${url}" alt="상품이미지">`;
+  document.querySelectorAll('.modal-thumb').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
 }
 
 function maybeCloseModal(e) {

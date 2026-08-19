@@ -637,12 +637,8 @@
           <input class="field-inp" id="f-phone" type="tel" placeholder="010-0000-0000">
         </div>
         <div class="field">
-          <div class="field-lbl">TKC 카페 닉네임 <span class="req">*</span></div>
-          <input class="field-inp" id="f-nick" type="text" placeholder="카페에서 사용하는 닉네임">
-        </div>
-        <div class="field">
-          <div class="field-lbl">차량 정보 <span class="req">*</span></div>
-          <input class="field-inp" id="f-car" type="text" placeholder="예: 모델Y 2024 RWD 화이트">
+          <div class="field-lbl">차량 정보</div>
+          <input class="field-inp" id="f-car" type="text" placeholder="예: 모델Y 2024 RWD 화이트 (선택)">
         </div>
         <div class="step-nav">
           <button class="btn btn-gray" onclick="showView('products')">← 쇼핑 계속</button>
@@ -719,7 +715,7 @@
             <span class="req-badge">필수</span>
           </div>
           <div class="consent-body">
-            <b>수집 항목:</b> 주문자명, 연락처, 카페 닉네임, 차량정보, 수령인 정보, 배송지, 입금자명<br>
+            <b>수집 항목:</b> 주문자명, 연락처, 차량정보, 수령인 정보, 배송지, 입금자명<br>
             <b>이용 목적:</b> 주문 접수, 입금 확인, 맞춤 제작, 배송<br>
             <b>보관 기간:</b> 배송 완료 후 관련 법령 또는 운영상 정산 확인 기간까지<br>
             수집된 정보는 목적 달성 후 안전하게 폐기됩니다.
@@ -880,7 +876,7 @@
 <!-- FOOTER -->
 <footer style="background:var(--black);color:rgba(255,255,255,0.4);text-align:center;padding:32px 20px;font-size:12px;line-height:1.8;margin-top:40px">
   <div style="font-size:15px;font-weight:900;color:white;letter-spacing:1px;margin-bottom:10px">ANITHING <span style="color:#0057FF">3D</span></div>
-  <div>3D 프린터 맞춤 제작 전문 · TKC 카페 회원 전용</div>
+  <div>3D 프린터 맞춤 제작 전문</div>
   <div style="margin-top:6px">맞춤 제작 특성상 발주 완료 후 단순 변심 환불 불가 · 제품 하자 시 수령 후 7일 이내 교환 가능</div>
   <div style="margin-top:12px;color:rgba(255,255,255,0.2)">© 2026 ANITHING 3D. All rights reserved.</div>
 </footer>
@@ -889,7 +885,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const API = 'https://script.google.com/macros/s/AKfycbxr4ldi9gFq01vgqr98iHgoiIkDMZpkS4KekWI0knGjdzvWcFAYOU-ggLz9XOJ9eHk3/exec';
+const API = 'https://script.google.com/macros/s/AKfycbxqQPIXimPc5PBfTPZpdVHNEkmp8-Fz9Z8bLHmXXqCtn0z2pgYGfImkfMKGhB2BdEoV/exec';
 
 let products = [], cart = [], curProd = null, curQty = 1, curStep = 1;
 
@@ -1132,8 +1128,6 @@ function valid(n) {
   if (n === 1) {
     if (!g('f-name')) return toast('이름을 입력해주세요'), false;
     if (!g('f-phone')) return toast('연락처를 입력해주세요'), false;
-    if (!g('f-nick')) return toast('카페 닉네임을 입력해주세요'), false;
-    if (!g('f-car')) return toast('차량 정보를 입력해주세요'), false;
   }
   if (n === 2) {
     if (!g('d-name')) return toast('받는 분 성함을 입력해주세요'), false;
@@ -1171,7 +1165,7 @@ async function submitOrder() {
   const sub = cart.reduce((s, i) => s + i.price * i.qty, 0);
   const payload = {
     action: 'order',
-    orderer: { name: g('f-name'), phone: g('f-phone'), nickname: g('f-nick'), vehicle: g('f-car') },
+    orderer: { name: g('f-name'), phone: g('f-phone'), vehicle: g('f-car') },
     delivery: { name: g('d-name'), phone: g('d-phone'), zipcode: g('d-zip'), address: g('d-addr1') + ' ' + g('d-addr2'), memo: g('d-memo') },
     items: cart, subtotal: sub, shipping: 0, total: sub,
     depositor: g('f-deposit')
